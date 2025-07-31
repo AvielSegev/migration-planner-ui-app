@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { Source } from '@migration-planner-ui/api-client/models';
 import { AgentStatusView } from './AgentStatusView';
 import { UploadInventoryAction } from './actions/UploadInventoryAction';
+import { DownloadOvaAction } from './actions/DownloadOvaAction';
 import { useDiscoverySources } from '../../../contexts/discovery-sources/Context';
 
 export const SourcesTable: React.FC<{
@@ -241,6 +242,12 @@ export const SourcesTable: React.FC<{
                             agentId={source.agent?.id ?? ''}
                           />
                         )}
+                      {source.name !== 'Example' && (
+                        <DownloadOvaAction
+                          sourceId={source.id}
+                          sourceName={source.name}
+                        />
+                      )}
                     </Td>
                   </Tr>
                 );

@@ -1,4 +1,4 @@
-import React, { type PropsWithChildren, useCallback, useState } from 'react';
+import React, { type PropsWithChildren, useCallback, useState, useEffect } from 'react';
 import { useAsyncFn, useInterval } from 'react-use';
 import {
   type ImageApiInterface,
@@ -25,6 +25,7 @@ export const Provider: React.FC<PropsWithChildren> = (props) => {
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
 
   const [downloadSourceUrl, setDownloadSourceUrl] = useState('');
+  const [sourceDownloadUrls, setSourceDownloadUrls] = useState<Record<string, string>>({});
 
   const sourceApi = useInjection<SourceApiInterface>(Symbols.SourceApi);
   const agentsApi = useInjection<AgentApiInterface>(Symbols.AgentApi);
@@ -142,9 +143,21 @@ export const Provider: React.FC<PropsWithChildren> = (props) => {
       });
       downloadSourceState.loading = true;
 
+      storeDownloadUrlForSource(newSource.id, imageUrl.url);
       setDownloadSourceUrl(imageUrl.url);
     },
   );
+
+  const getDownloadUrlForSource = useCallback((sourceId: string): string | undefined => {
+    return sourceDownloadUrls[sourceId];
+  }, [sourceDownloadUrls]);
+
+  const storeDownloadUrlForSource = useCallback((sourceId: string, downloadUrl: string) => {
+    setSourceDownloadUrls(prev => ({
+      ...prev,
+      [sourceId]: downloadUrl
+    }));
+  }, []);
 
   const [isPolling, setIsPolling] = useState(false);
   const [pollingDelay, setPollingDelay] = useState<number | null>(null);
@@ -224,7 +237,7 @@ export const Provider: React.FC<PropsWithChildren> = (props) => {
   );
 
   const setDownloadUrl = useCallback((url: string) => {
-    setDownloadSourceUrl('');
+    setDownloadSourceUrl(url);
   }, []);
 
   const ctx: DiscoverySources.Context = {
@@ -261,6 +274,9 @@ export const Provider: React.FC<PropsWithChildren> = (props) => {
     errorUpdatingSource: updateSourceState.error,
     downloadSourceUrl,
     setDownloadUrl,
+    sourceDownloadUrls,
+    getDownloadUrlForSource,
+    storeDownloadUrlForSource,
   };
 
   return <Context.Provider value={ctx}>{children}</Context.Provider>;
